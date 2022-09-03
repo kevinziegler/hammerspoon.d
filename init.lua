@@ -1,15 +1,18 @@
 require "styles"
 require "helpers"
+require "bootstrap"
 
-hs.loadSpoon("RecursiveBinder")
+bootstrap()
+hs.loadSpoon("SpoonInstall")
+
+spoon.SpoonInstall.use_syncinstall = true
+spoon.SpoonInstall:andUse("RecursiveBinder")
 
 spoon.RecursiveBinder.escapeKey = { {}, "escape" }
 spoon.RecursiveBinder.helperEntryLengthInChar = 25
 spoon.RecursiveBinder.helperFormat = recursiveBinderFormat
 
 local singleKey = spoon.RecursiveBinder.singleKey
-local exposeAllApps = hs.expose.new()
-local exposeCurrentSpace = hs.expose.new()
 
 function mapActionToSpaces(keyMap, screen, actionFn, descriptionFormat)
   screenSpaces = hs.spaces.allSpaces()[screen]
