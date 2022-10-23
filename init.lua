@@ -1,6 +1,8 @@
 require "styles"
 require "helpers"
 require "bootstrap"
+require "org-capture"
+-- require "layouts"
 
 bootstrap()
 hs.loadSpoon("SpoonInstall")
@@ -62,6 +64,9 @@ function spacesMap()
   spoon.RecursiveBinder.recursiveBind(keyMap)()
 end
 
+orgCaptureTree = getOrgCaptureKeys()
+orgCaptureMap = captureKeyBindings(orgCaptureTree, singleKey)
+
 local keyMap = {
   [singleKey("space", "Alfred")] = launch("Alfred 4"),
   [singleKey("a", "Applications")] = {
@@ -81,6 +86,7 @@ local keyMap = {
     [singleKey("R", "Reload Config")] = hs.reload,
     [singleKey("C", "Launch Console")] = launch("Hammerspoon"),
   },
+  [singleKey("o", "Org Capture")] = orgCaptureMap,
   [singleKey("s", "Spotify Controls")] = {
     [singleKey("space", "Play/Pause")] = hs.spotify.playpause,
     [singleKey("n", "Play Next")] = hs.spotify.next,
