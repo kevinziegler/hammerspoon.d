@@ -85,6 +85,7 @@ unicode = {
   tears_of_joy = "(ಥ⌣ಥ)",
   unsure = "⊜_⊜",
   you_gotta_be_kidding = "●_●",
+  zoidberg = "(V) (°,,,,°) (V)",
   zoidberg_of_disapproval = "(V) (ಠ,,,ಠ) (V)",
   whatever = "◔_◔"
 }
