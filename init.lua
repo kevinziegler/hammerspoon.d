@@ -1,7 +1,8 @@
 require "styles"
 require "helpers"
 require "bootstrap"
-require "org-capture"
+local unicode = require("unicode")
+-- require "org-capture"
 -- require "layouts"
 
 bootstrap()
@@ -64,32 +65,6 @@ function spacesMap()
   spoon.RecursiveBinder.recursiveBind(keyMap)()
 end
 
-unicode = {
-  confused = "ↁ_ↁ",
-  derp = "¯\\(◉◡◔)/¯",
-  disapproval = "ಠ_ಠ" ,
-  disbelief = "☉_☉",
-  doubtful_look = "ಠಿ_ಠ",
-  lenny = "( ͡° ͜ʖ ͡°)",
-  not_sure_if = "(≖_≖ )",
-  serious_look = "(ಠ_ಠ)",
-  shrug = "¯\\_(ツ)_/¯",
-  suspicious = "(;¬_¬)",
-  table_flip = "(╯°□°)╯︵ ┻━┻",
-  table_flip_alarmed = "(┛◉Д◉)┛彡┻━┻",
-  table_flip_angry = "(ノಠ益ಠ)ノ彡┻━┻",
-  table_flip_jake = "(┛❍ᴥ❍﻿)┛彡┻━┻",
-  table_flip_look = "(┛ಠ_ಠ)┛彡┻━┻",
-  table_flip_pointing = "(☞ﾟヮﾟ)☞ ┻━┻",
-  table_down = "┬─┬ノ( º _ ºノ)",
-  tears_of_joy = "(ಥ⌣ಥ)",
-  unsure = "⊜_⊜",
-  you_gotta_be_kidding = "●_●",
-  zoidberg = "(V) (°,,,,°) (V)",
-  zoidberg_of_disapproval = "(V) (ಠ,,,ಠ) (V)",
-  whatever = "◔_◔"
-}
-
 orgCaptureTree = getOrgCaptureKeys()
 orgCaptureMap = captureKeyBindings(orgCaptureTree, singleKey)
 
@@ -112,15 +87,7 @@ local keyMap = {
     [singleKey("R", "Reload Config")] = hs.reload,
     [singleKey("C", "Launch Console")] = launch("Hammerspoon"),
   },
-  [singleKey("i", "Insert Text")] = {
-    [singleKey("s", unicode.shrug)] = insertText(unicode.shrug),
-    [singleKey("t", "Tables")] = {
-      [singleKey("a", unicode.table_flip_alarmed)] = insertText(unicode.table_flip_alarmed),
-      [singleKey("A", unicode.table_flip_angry)] = insertText(unicode.table_flip_angry),
-      [singleKey("d", unicode.table_down)] = insertText(unicode.table_down),
-      [singleKey("f", unicode.table_flip)] = insertText(unicode.table_flip),
-      [singleKey("l", unicode.table_flip_look)] = insertText(unicode.table_flip_look),
-      [singleKey("p", unicode.table_flip_pointing)] = insertText(unicode.table_flip_pointing),
+  [singleKey("i", "Insert Text")] = unicode.keymapTable(singleKey),
     },
     [singleKey("z", unicode.zoidberg_of_disapproval)] = insertText(unicode.zoidberg_of_disapproval),
   },
