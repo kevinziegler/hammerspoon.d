@@ -2,6 +2,10 @@ function launch(applicationName)
   return function() hs.application.launchOrFocus(applicationName) end
 end
 
+function launchByBundleId(bundleId)
+  return function() hs.application.launchOrFocusByBundleID(bundleId) end
+end
+
 function moveToSpace(space)
   if space then
     return function() hs.spaces.gotoSpace(space) end
