@@ -27,4 +27,4 @@ local keyMap = {
 }
 
 hs.hotkey.bind({'command'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
-hs.alert.show("Config loaded")
+hs.alert.show("Configuration loaded")
