@@ -4,8 +4,8 @@ local spoonInstallUrl = "https://github.com/Hammerspoon/Spoons/raw/master/Spoons
 local installerZipPath = hs.fs.temporaryDirectory() .. spoonInstallZip
 local spoonInstall = spoonDir .. "SpoonInstall.spoon"
 
-function bootstrap()
-  exists, _ = hs.fs.touch(spoonInstall)
+return function()
+  local exists, _ = hs.fs.touch(spoonInstall)
   if exists then
     print("Spoon installer exits.  No bootstrap required.")
     return

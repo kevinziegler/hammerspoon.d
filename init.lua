@@ -1,8 +1,11 @@
 require "styles"
-require "helpers"
-require "bootstrap"
 
-local bindKeymap = require("keymaps.utilities").bindKeymap
+local bootstrap = require("bootstrap")
+local keymapUtils = require("keymaps.utilities")
+
+local function bindKeymap(keymap)
+  keymapUtils.bindKeymap(keymap, spoon.MyRecursiveBinder)
+end
 
 bootstrap()
 hs.loadSpoon("SpoonInstall")
@@ -19,13 +22,13 @@ spoon.MyRecursiveBinder.helperFormat = recursiveBinderFormat
 local singleKey = spoon.MyRecursiveBinder.singleKey
 
 local keyMap = {
-  [singleKey("space", "Alfred")] = launchByBundleId("com.runningwithcrayons.Alfred"),
-  [singleKey("a", "Applications")] = bindKeymap('applications', spoon.MyRecursiveBinder),
-  [singleKey("h", "Help")] = bindKeymap('help', spoon.MyRecursiveBinder),
-  [singleKey("i", "Insert Text")] = bindKeymap('unicode', spoon.MyRecursiveBinder),
-  [singleKey("s", "Spotify Controls")] = bindKeymap('spotify', spoon.MyRecursiveBinder),
-  [singleKey("tab", "Desktop")] = bindKeymap('spaces', spoon.MyRecursiveBinder),
+  [singleKey("space", "Alfred")] = keymapUtils.launch("Alfred 4"),
+  [singleKey("a", "Applications")] = bindKeymap('applications'),
+  [singleKey("h", "Help")] = bindKeymap('help'),
+  [singleKey("i", "Insert Text")] = bindKeymap('unicode'),
+  [singleKey("s", "Spotify Controls")] = bindKeymap('spotify'),
+  [singleKey("tab", "Desktop")] = bindKeymap('spaces'),
 }
 
-hs.hotkey.bind({'command'}, 'space', spoon.MyRecursiveBinder.recursiveBind(keyMap))
-hs.alert.show("Config loaded")
+hs.hotkey.bind({'command'}, 'space', bindKeymap(keyMap))
+hs.alert.show("Configuration loaded")
