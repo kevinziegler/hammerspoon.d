@@ -9,6 +9,7 @@ hs.loadSpoon("SpoonInstall")
 
 spoon.SpoonInstall.use_syncinstall = true
 spoon.SpoonInstall:andUse("RecursiveBinder")
+spoon.SpoonInstall:andUse("EmmyLua")
 
 spoon.RecursiveBinder.escapeKey = { {}, "escape" }
 spoon.RecursiveBinder.helperEntryLengthInChar = 25
