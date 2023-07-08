@@ -151,8 +151,10 @@ function LayoutUltrawide:add(window)
   debug("Adding window to layout: ", {window = window})
 
   if #self.columns.main:getWindows() == 0 then
-    self:__addTo(self.columns.main, window)
+    debug("Adding window to main", window)
+    self:__addTo(self.columns.main, {window=window})
   else
+    debug("Adding window to column", {window = window, column=self.addToNext})
     self:__addTo(self.addToNext, window)
     self.addToNext = self:__alternate(self.addToNext)
   end
@@ -168,6 +170,7 @@ function LayoutUltrawide:__alternate(column)
 end
 
 function LayoutUltrawide:captureScreen()
+  debug("Capturing windows in screen")
   -- TODO Exclude windows like the Hammerspoon console that force themselves
   --      to the front
   if #self.columns.main:getWindows() == 0 then
@@ -175,7 +178,12 @@ function LayoutUltrawide:captureScreen()
     self.columns.main:add(self.hs.window.focusedWindow())
   end
 
-  for _, window in pairs(self.hs.window.allWindows()) do self:add(window) end
+  for _, window in pairs(self.hs.window.allWindows()) do
+    debug("Capturing window to column", {window = window})
+    self:add(window)
+  end
+end
+
 function LayoutUltrawide:growMain()
   self.columns.left.dimensions.w = self.columns.left.dimensions.w - 1
   self.columns.main.dimensions.w = self.columns.main.dimensions.w + 2
