@@ -67,7 +67,7 @@ end
 
 function LayoutUltrawide:apply()
   debug("Applying layout (ultrawide)")
-  for _, column in self.columns do
+  for _, column in pairs(self.columns) do
     column:apply()
   end
 end
