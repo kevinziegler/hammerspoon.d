@@ -176,6 +176,26 @@ function LayoutUltrawide:captureScreen()
   end
 
   for _, window in pairs(self.hs.window.allWindows()) do self:add(window) end
+function LayoutUltrawide:growMain()
+  self.columns.left.dimensions.w = self.columns.left.dimensions.w - 1
+  self.columns.main.dimensions.w = self.columns.main.dimensions.w + 2
+  self.columns.right.dimensions.w = self.columns.right.dimensions.w - 1
+
+  self.columns.main.dimensions.x = self.columns.main.dimensions.x - 1
+  self.columns.right.dimensions.x = self.columns.right.dimensions.x + 1
+
+  self:apply()
+end
+
+function LayoutUltrawide:shrinkMain()
+  self.columns.left.dimensions.w = self.columns.left.dimensions.w + 1
+  self.columns.main.dimensions.w = self.columns.main.dimensions.w - 2
+  self.columns.right.dimensions.w = self.columns.right.dimensions.w + 1
+
+  self.columns.main.dimensions.x = self.columns.main.dimensions.x + 1
+  self.columns.right.dimensions.x = self.columns.right.dimensions.x - 1
+
+  self:apply()
 end
 
 return LayoutUltrawide
