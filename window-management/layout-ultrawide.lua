@@ -49,11 +49,10 @@ end
 end
 
 
-function LayoutUltrawide:new(hs, grid, gridDimensions, mainWidth)
+function LayoutUltrawide:new(grid, gridDimensions, mainWidth)
   local obj = {}
   setmetatable(obj, LayoutUltrawide)
 
-  obj.hs = hs
   obj.grid = grid
   obj.grid.setGrid(gridDimensions)
   obj.grid.setMargins({x = 10, y = 10})
@@ -162,29 +161,37 @@ function LayoutUltrawide:add(window)
   end
 
 end
+
 function LayoutUltrawide:__alternate(column)
-  if column == self.columns.left then
-    return self.columns.right
-  else
-    return self.columns.left
-  end
+  return column == self.columns.left and self.columns.left or self.colums.right
 end
 
-function LayoutUltrawide:captureScreen()
-  debug("Capturing windows in screen")
+--- Initialize this layout with a set of windows and an optional primary window
+---
+--- A set of windows must be specified (but can be empty).  The primary window
+--- is optional, but will be assigned to the 'main' column in the layout if it
+--- is provided.  The primary window may also occur in the list of windows
+--- passed in the first parameter; it will still be placed correctly in the
+--- layout.
+---
+--- @param windows table<hs.window> Window objects to manage in this layout
+--- @param primary hs.window A window to treat as 'primary' in the layout
+function LayoutUltrawide:initialize(windows, primary)
+  debug("Initializing ultrawide layout")
   -- TODO Exclude windows like the Hammerspoon console that force themselves
   --      to the front
-  if #self.columns.main:getWindows() == 0 then
-    debug("Adding window to main", { window = self.hs.window.focusedWindow() })
-    self.columns.main:add(self.hs.window.focusedWindow())
+  if primary then
+    debug("Adding window to main", { window = primary })
+    self.columns.main:add(primary)
   end
 
-  for _, window in pairs(self.hs.window.allWindows()) do
+  for _, window in pairs(windows) do
     debug("Capturing window to column", {window = window})
     self:add(window)
   end
 end
 
+--- Grow the width of the main column in this layout
 function LayoutUltrawide:growMain()
   debug("Growing main column dimensions")
   self.columns.left.dimensions.w = self.columns.left.dimensions.w - 1
@@ -197,6 +204,7 @@ function LayoutUltrawide:growMain()
   self:apply()
 end
 
+--- Shrink the width of the main column in this layout
 function LayoutUltrawide:shrinkMain()
   debug("Shrinking main column dimensions")
   self.columns.left.dimensions.w = self.columns.left.dimensions.w + 1
@@ -209,6 +217,7 @@ function LayoutUltrawide:shrinkMain()
   self:apply()
 end
 
+--- Reset the widths of all columns in this layout
 function LayoutUltrawide:reset()
   self.columns.main.dimensions = self.defaultCells.main
   self.columns.left.dimensions = self.defaultCells.left
