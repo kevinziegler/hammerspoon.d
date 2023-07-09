@@ -16,19 +16,31 @@ Partition.__index = Partition
 
 local debug = require('window-management.util').debug
 
+local function copyTable(tableToCopy)
+  local copy = {}
+
+  for key, value in pairs(tableToCopy) do
+    copy[key] = value
+  end
+
+  return copy
+end
+
+
 --- Create a new Partition instance
 ---
 --- @param grid hs.grid The grid instance to bind to
 --- @param dimensions hs.geometry The absolute grid dimensions of the partition
---- @param windows table A table of hs.window objects to include initially
+--- @param name string A human-readable name for the partition
 --- @return Partition
-function Partition:new(grid, dimensions, windows)
+function Partition:new(grid, dimensions, name)
   local this = {}
   setmetatable(this, Partition)
 
+  this.name = name
   this.grid = grid
-  this.dimensions = dimensions
-  this.windows = windows or {}
+  this.dimensions = copyTable(dimensions)
+  this.windows = {}
 
   return this
 end

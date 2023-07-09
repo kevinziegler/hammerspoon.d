@@ -4,45 +4,46 @@ Partition = require('window-management.partition')
 
 LayoutUltrawide = {
   columns = {},
+  defaultCells = {},
   addToNext = nil,
   active = nil
 }
 
 LayoutUltrawide.__index = LayoutUltrawide
 
-
-local function initializeColumns(grid, gridDimensions, mainWidth)
+local function initializeCells(gridDimensions, mainWidth)
   local sideWidth = (gridDimensions.w - mainWidth) / 2
 
   return {
-    main = Partition:new(
-      grid,
-      { x = sideWidth, y = 0, h = gridDimensions.h, w = mainWidth },
-      {}
-    ),
+    main = {
+      x = sideWidth,
+      y = 0,
+      h = gridDimensions.h,
+      w = mainWidth
+    },
 
-    left = Partition:new(
-      grid,
-      { x = 0, y = 0, h = gridDimensions.h, w = sideWidth },
-      {}
-    ),
+    left = {
+      x = 0,
+      y = 0,
+      h = gridDimensions.h,
+      w = sideWidth
+    },
 
-    right = Partition:new(
-      grid,
-      { x = sideWidth + mainWidth, y = 0, h = gridDimensions.h, w = sideWidth },
-      {}
-    ),
+    right = {
+      x = sideWidth + mainWidth,
+      y = 0,
+      h = gridDimensions.h,
+      w = sideWidth
+    },
 
-    center = Partition:new(
-      grid,
-      {
-        x = gridDimensions.w * 0.2,
-        y = gridDimensions.h * 0.2,
-        w = gridDimensions.w * 0.6,
-        h = gridDimensions.h * 0.6,
-      },
-      {}
-    ),
+    center = {
+      x = gridDimensions.w * 0.2,
+      y = gridDimensions.h * 0.2,
+      w = gridDimensions.w * 0.6,
+      h = gridDimensions.h * 0.6,
+    }
+  }
+end
   }
 
 end
@@ -56,8 +57,14 @@ function LayoutUltrawide:new(hs, grid, gridDimensions, mainWidth)
   obj.grid = grid
   obj.grid.setGrid(gridDimensions)
   obj.grid.setMargins({x = 10, y = 10})
+  obj.defaultCells = initializeCells(gridDimensions, mainWidth)
 
-  obj.columns = initializeColumns(grid, gridDimensions, mainWidth)
+  obj.columns = {
+    main = Partition:new(grid, obj.defaultCells.main, "Main"),
+    left = Partition:new(grid, obj.defaultCells.left, "Left"),
+    right = Partition:new(grid, obj.defaultCells.right, "Right"),
+    center = Partition:new(grid, obj.defaultCells.center, "Center"),
+  }
 
   obj.addToNext = obj.columns.left
   obj.returnFromCenter = {}
@@ -85,11 +92,6 @@ end
 
 function LayoutUltrawide:__partitionFor(window)
   local column = self:__columnFor(window)
-
-  -- if column then
-  --   return column:getPartitionFor(window)
-  -- end
-
   return column
 end
 
@@ -151,8 +153,8 @@ function LayoutUltrawide:add(window)
   debug("Adding window to layout: ", {window = window})
 
   if #self.columns.main:getWindows() == 0 then
-    debug("Adding window to main", window)
-    self:__addTo(self.columns.main, {window=window})
+    debug("Adding window to main", {window = window})
+    self:__addTo(self.columns.main, window)
   else
     debug("Adding window to column", {window = window, column=self.addToNext})
     self:__addTo(self.addToNext, window)
@@ -160,7 +162,6 @@ function LayoutUltrawide:add(window)
   end
 
 end
-
 function LayoutUltrawide:__alternate(column)
   if column == self.columns.left then
     return self.columns.right
@@ -185,6 +186,7 @@ function LayoutUltrawide:captureScreen()
 end
 
 function LayoutUltrawide:growMain()
+  debug("Growing main column dimensions")
   self.columns.left.dimensions.w = self.columns.left.dimensions.w - 1
   self.columns.main.dimensions.w = self.columns.main.dimensions.w + 2
   self.columns.right.dimensions.w = self.columns.right.dimensions.w - 1
@@ -196,12 +198,22 @@ function LayoutUltrawide:growMain()
 end
 
 function LayoutUltrawide:shrinkMain()
+  debug("Shrinking main column dimensions")
   self.columns.left.dimensions.w = self.columns.left.dimensions.w + 1
   self.columns.main.dimensions.w = self.columns.main.dimensions.w - 2
   self.columns.right.dimensions.w = self.columns.right.dimensions.w + 1
 
   self.columns.main.dimensions.x = self.columns.main.dimensions.x + 1
   self.columns.right.dimensions.x = self.columns.right.dimensions.x - 1
+
+  self:apply()
+end
+
+function LayoutUltrawide:reset()
+  self.columns.main.dimensions = self.defaultCells.main
+  self.columns.left.dimensions = self.defaultCells.left
+  self.columns.right.dimensions = self.defaultCells.right
+  self.columns.center.dimensions = self.defaultCells.center
 
   self:apply()
 end
