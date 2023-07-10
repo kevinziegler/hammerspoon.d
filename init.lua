@@ -8,23 +8,24 @@ bootstrap()
 hs.loadSpoon("SpoonInstall")
 
 spoon.SpoonInstall.use_syncinstall = true
-spoon.SpoonInstall:andUse("RecursiveBinder")
+spoon.SpoonInstall:andUse("MyRecursiveBinder")
 spoon.SpoonInstall:andUse("EmmyLua")
 
-spoon.RecursiveBinder.escapeKey = { {}, "escape" }
-spoon.RecursiveBinder.helperEntryLengthInChar = 25
-spoon.RecursiveBinder.helperFormat = recursiveBinderFormat
+spoon.MyRecursiveBinder.escapeKey = { {}, "escape" }
+spoon.MyRecursiveBinder.helperEntryLengthInChar = 25
+spoon.MyRecursiveBinder.helperEntryEachLine = 2
+spoon.MyRecursiveBinder.helperFormat = recursiveBinderFormat
 
-local singleKey = spoon.RecursiveBinder.singleKey
+local singleKey = spoon.MyRecursiveBinder.singleKey
 
 local keyMap = {
   [singleKey("space", "Alfred")] = launch("Alfred 4"),
-  [singleKey("a", "Applications")] = bindKeymap('applications', spoon.RecursiveBinder),
-  [singleKey("h", "Help")] = bindKeymap('help', spoon.RecursiveBinder),
-  [singleKey("i", "Insert Text")] = bindKeymap('unicode', spoon.RecursiveBinder),
-  [singleKey("s", "Spotify Controls")] = bindKeymap('spotify', spoon.RecursiveBinder),
-  [singleKey("tab", "Desktop")] = bindKeymap('spaces', spoon.RecursiveBinder),
+  [singleKey("a", "Applications")] = bindKeymap('applications', spoon.MyRecursiveBinder),
+  [singleKey("h", "Help")] = bindKeymap('help', spoon.MyRecursiveBinder),
+  [singleKey("i", "Insert Text")] = bindKeymap('unicode', spoon.MyRecursiveBinder),
+  [singleKey("s", "Spotify Controls")] = bindKeymap('spotify', spoon.MyRecursiveBinder),
+  [singleKey("tab", "Desktop")] = bindKeymap('spaces', spoon.MyRecursiveBinder),
 }
 
-hs.hotkey.bind({'command'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
-hs.alert.show("Configuration loaded")
+hs.hotkey.bind({'command'}, 'space', spoon.MyRecursiveBinder.recursiveBind(keyMap))
+hs.alert.show("Config loaded")
