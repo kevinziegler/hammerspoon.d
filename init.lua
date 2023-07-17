@@ -19,7 +19,7 @@ spoon.MyRecursiveBinder.helperFormat = recursiveBinderFormat
 local singleKey = spoon.MyRecursiveBinder.singleKey
 
 local keyMap = {
-  [singleKey("space", "Alfred")] = launch("Alfred 4"),
+  [singleKey("space", "Alfred")] = launchByBundleId("com.runningwithcrayons.Alfred"),
   [singleKey("a", "Applications")] = bindKeymap('applications', spoon.MyRecursiveBinder),
   [singleKey("h", "Help")] = bindKeymap('help', spoon.MyRecursiveBinder),
   [singleKey("i", "Insert Text")] = bindKeymap('unicode', spoon.MyRecursiveBinder),
