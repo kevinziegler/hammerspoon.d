@@ -1,90 +1,93 @@
-local helper = require("Leader.helper")
-local MenuItem = require("Leader.MenuItem")
+local BindingHelper = require('Leader.BindingHelper')
 
 local Menu = {
-  title = "",
   items = {},
+  title = nil,
   modal = nil,
+  quitKey = { modifiers = nil, key = 'escape' },
+  defaultTitle = "🞆",
+  __mt = {},
+  __noop = function() print("WARNING: invoked menu item without action") end,
+  __bh = BindingHelper
 }
 
 Menu.__index = Menu
 
-function Menu:new(title, items)
-  local obj = {}
-  setmetatable(obj, Menu)
+-- This allows us to treat a Menu object as a function (taking no arguments),
+-- which in turn allows us to treat actions in a menu simply as 'callables',
+-- where we don't care if the action is simply a callback function or a
+-- sub-menu.
+function Menu.__call(this)
+  return this:__activate()
+end
 
-  obj.items = items
-  obj.modal = hs.hotkey.modal.new()
+-- Constructor for new menu instances
+function Menu.__mt.__call(this, items, hsGlobal)
+  local menu = setmetatable(
+    {
+      title = nil,
+      items = items,
+      modal = hsGlobal.hotkey.modal.new(),
+      helper = BindingHelper(items, hsGlobal)
+    },
+    this
+  )
 
-  for _, item in pairs(self.items) do
-    item:bindToMenu(obj)
+  menu:__bind()
+
+  return menu
+end
+
+function Menu.isMenu(object)
+  return getmetatable(object) == Menu
+end
+
+function Menu:__bind()
+  for binding, action in pairs(self.items) do
+    binding:bindTo(self.modal, self:__activationFor(binding, action))
   end
 
-  return obj
+  self.modal:bind(self.quitKey.modifiers, self.quitKey.key, self:deactivate())
 end
 
-function Menu:menuItemsForType(itemType)
-  local filtered = {}
-  for _, item in pairs(self.items) do
-    if item:resolvedType() == itemType then
-      table.insert(filtered, item)
-    end
-  end
-
-  table.sort(filtered, helper.menuItemCompare)
-
-  return filtered
-end
-
-function Menu:terminationActions()
-  return self:menuItemsForType(MenuItem.TYPES.ACTION)
-end
-
-function Menu:subMenus()
-  return self:menuItemsForType(MenuItem.TYPES.MENU)
-end
-
-function Menu:loopedActions()
-  return self:menuItemsForType(MenuItem.TYPES.REPEATING)
-end
-
-function Menu:showHelper()
-  self.helperId = hs.alert.show("FIXME")
-end
-
-function Menu:killHelper()
-  if self.helperId then
-    hs.alert.closeSpecific(self.helperId)
-  end
-end
-
---- Activate the modal backing this menu
----
---- Additionally, display the helper for this menu.  If a parent Menu is
---- provided, then the helper for that
----
---- @param parent Menu The parent menu to the current menu being activated
-function Menu:activate()
+function Menu:__activate(breadcrumbs)
+  breadcrumbs = breadcrumbs or {}
+  breadcrumbs[#breadcrumbs+1] = self.title or self.defaultTitle
   self.modal:enter()
-  self:showHelper()
+  self.helper:show()
 end
 
-function Menu:deactivate(action)
-  self:killHelper()
+function Menu:activate()
+  return function()
+    self:__activate()
+  end
+end
+
+function Menu:__deactivate()
+  self.helper:hide()
   self.modal:exit()
 end
 
---- @return function A function to activate this menu
-function Menu:activation()
+function Menu:deactivate()
   return function()
-    self:activate()
+    self:__deactivate()
   end
 end
 
-return Menu
+function Menu:__activationFor(binding, action)
+  -- TODO Figure out repeating for menus - this is trickier than plain actions,
+  --      since we may want to traverse multiple sub-menus before returning to
+  --      the 'current level' of menu we're at now.  This probably means passing
+  --      some sort of callback function or reference, but I need to think about
+  --      how I want that to work (also: a coroutine, maybe?)
+  return function ()
+    self:__deactivate()
+    action()
 
+    if binding.repeating then
+      self:__activate()
+    end
+  end
+end
 
--- Example Usage
--- myMenu = Menu( ... items ... )
---
--- hs.hotkey.bind({'command'}, 'space', myMenu:activation())
+return setmetatable(Menu, Menu.__mt)
