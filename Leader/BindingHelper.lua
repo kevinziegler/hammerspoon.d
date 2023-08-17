@@ -1,134 +1,49 @@
-local defaultSymbols = {
-    modifiers = {
-      control = '⌃',
-      command = '⌘',
-      option = '⌥',
-      shift = '⇧',
-    },
-
-    special = {
-      tab = "TAB",
-      escape = "ESC",
-      space = "SPC"
-    },
-
-    repeating = '⥁',
-}
-
-local defaultFormatting = {
-  description = {
-    padding = 4,
-    minWidth = 40,
-  },
-
-  modifiers = {
-    keySeparator = "+",
-  },
-
-  header = {
-    fillChar = "—",
-    hsStyles = {
-      title = {
-        color = { hex = "CBCCC6", alpha = 1.0 },
-        font = { name = "Berkeley Mono", size = 18 },
-      },
-
-      fill = {
-        color = { hex = "CBCCC6", alpha = 0.5 },
-        font = { name = "Berkeley Mono", size = 18 },
-      },
-    }
-  },
-
-  footer = {
-    hsStyles = {
-      hint = {
-        color = { hex = "CBCCC6", alpha = 0.5 },
-        font = { name = "Berkeley Mono", size = 18 },
-      },
-
-      fill = {
-        color = { hex = "CBCCC6", alpha = 0.5 },
-        font = { name = "Berkeley Mono", size = 18 },
-      },
-    }
-  },
-
-  hsStyles = {
-    active = {
-      color = { hex = "CBCCC6", alpha = 1.0 },
-      font = { name = "Berkeley Mono", size = 18 },
-    },
-
-    inactive = {
-      color = { hex = "CBCCC6", alpha = 0.1 },
-      font = { name = "Berkeley Mono", size = 18 },
-    },
-
-    default = {
-      color = { hex = "CBCCC6", alpha = 1.0 },
-      font = { name = "Berkeley Mono", size = 18 },
-    },
-
-    alert = {
-      fillColor = { hex = "#1F2430", alpha = 0.95 },
-      strokeWidth = 5,
-      strokeColor = { hex = "#CBCCC6", alpha = 1.0 },
-      radius = 7,
-    }
-  }
-}
+local MenuHelperConfig = require('Leader.MenuHelperConfig')
 
 --- Build & display helper menus for modal bindings
 -- @type BindingHelper
--- @field items #map<Binding, Action> Bindings & actions for the menu
--- @field display hs.alert Handler for displaying alerts
+-- @field hs Global Hammerspoon object
 local BindingHelper = {
-  items = {},
   hs = nil,
+  config = nil,
   symbols = {},
   formatting = nil,
   __displayId = nil,
   __mt = {}
 }
 
-BindingHelper.defaultFormatting = defaultFormatting
-BindingHelper.defaultSymbols = defaultSymbols
-
 BindingHelper.__index = BindingHelper
 
-function BindingHelper.__mt.__call(class, items, hsGlobal, formatting, symbols)
+function BindingHelper.__mt.__call(class, hsGlobal, config)
   return setmetatable(
     {
-      items = items,
       hs = hsGlobal,
-      formatting = formatting or class.defaultFormatting,
-      symbols = symbols or class.defaultSymbols,
+      config = config or MenuHelperConfig(),
     },
     class
   )
 end
 
--- TODO Implement styles as a deep merge with defaults to allow partial
---      overrides
 function BindingHelper:__format(string, component, mode)
-  local componentRoot = self.formatting[component] or {}
-  local componentStyle = componentRoot.hsStyles or self.formatting.hsStyles
-  local applied = componentStyle[mode]
-
-  return self.hs.styledtext.new(string, applied)
+  return self.hs.styledtext.new(
+    string,
+    self.config.styles:styleFor((component or "default") .. "." .. mode)
+  )
 end
 
 function BindingHelper:__repeatHint(binding)
-  local mode = binding.repeating and "active" or "inactive"
-  return self:__format(self.symbols.repeating .. " ", "repeating", mode)
+  return self:__format(
+    self.config.symbols.repeating .. " ",
+    "item.hint",
+    binding.repeating and "active" or "inactive"
+  )
 end
 
 function BindingHelper:__keyHint(binding)
   local hint = "  " .. string.upper(binding.key)
 
-  if self.symbols.special[binding.key] then
-    hint = self.symbols.special[binding.key]
+  if self.config.symbols.special[binding.key] then
+    hint = self.config.symbols.special[binding.key]
   end
 
   return self:__format(hint, "description", "active")
@@ -138,9 +53,9 @@ function BindingHelper:__modifierHint(binding)
   local hint = self:__format("", "modifiers", "active")
 
   local enabled = binding:enabledModifiers()
-  for modifier, symbol in pairs(self.symbols.modifiers) do
-    mode = enabled[modifier] and "active" or "inactive"
-    hint = hint .. self:__format(symbol, "modifier", mode)
+  for modifier, symbol in pairs(self.config.symbols.modifiers) do
+    local mode = enabled[modifier] and "active" or "inactive"
+    hint = hint .. self:__format(symbol, "item.hint", mode)
   end
 
   return hint .. " "
@@ -148,7 +63,7 @@ end
 
 function BindingHelper:__descriptionHint(binding, width)
   local padTo = width
-    + self.formatting.description.padding
+    + self.config.styles:styleFor("item.description").padding
     - utf8.len(binding.description)
 
   local hint = string.rep(" ", padTo) .. binding.description
@@ -156,15 +71,14 @@ function BindingHelper:__descriptionHint(binding, width)
 end
 
 function BindingHelper:__itemHint(binding, descriptionWidth)
-  return -- self:__repeatHint(binding)
-    self:__modifierHint(binding)
+  return self:__modifierHint(binding)
     .. self:__keyHint(binding)
     .. self:__descriptionHint(binding, descriptionWidth)
 end
 
 function BindingHelper:__header(title, width)
   local fill = string.rep(
-    self.formatting.header.fillChar,
+    self.config.symbols.header.fill,
     width - utf8.len(title) - 1
   )
 
@@ -173,42 +87,50 @@ function BindingHelper:__header(title, width)
     .. self:__format(fill, "header", "fill")
 end
 
+function BindingHelper:__breadcrumbHeader(breadcrumbs, width)
+  local header = table.concat(breadcrumbs, " ❱ ") .. " "
+  local fillWidth = width - utf8.len(header)
+  header = header .. string.rep(self.config.symbols.header.fill, fillWidth)
+
+  return self:__format(header, "header", "title")
+end
+
 function BindingHelper:__footer(width)
   local quitHint = "(ESC to quit)"
   local footerLine = string.rep(
-    self.formatting.header.fillChar, width - utf8.len(quitHint) - 1
+    self.config.symbols.header.fill, width - utf8.len(quitHint) - 1
   )
 
   return self:__format("\n" .. footerLine .. " ", "footer", "fill")
     .. self:__format(quitHint, "footer", "hint")
 end
 
-function BindingHelper:__helperText()
-  local helperLines = {}
-  local descriptionWidth = self.formatting.description.minWidth
+
+function BindingHelper:__helperText(breadcrumbs, items)
+  local descriptionWidth = self.config.styles:styleFor("item.description").minWidth
   local lineWidth = 0
   local body = self:__format("", nil, "active")
 
-  for binding, action in pairs(self.items) do
+  breadcrumbs = breadcrumbs or {}
+
+  for binding, _ in pairs(items) do
     descriptionWidth = math.max(descriptionWidth, utf8.len(binding.description))
   end
 
-  for binding, action in pairs(self.items) do
+  for binding, _ in pairs(items) do
     local line = self:__itemHint(binding, descriptionWidth)
     lineWidth = math.max(lineWidth, utf8.len(line:getString()))
     body = body .. self:__format("\n", nil, "active") .. line
   end
 
-  return self:__header("Actions", lineWidth)
-    .. body
-    .. self:__footer(lineWidth)
+  return self:__header("Actions", lineWidth) .. body .. self:__footer(lineWidth)
 end
 
-function BindingHelper:show()
+function BindingHelper:show(items)
   self:hide()
   self.__displayId = self.hs.alert.show(
-    self:__helperText(),
-    self.formatting.hsStyles.alert,
+    self:__helperText(nil, items),
+    self.config.styles.alert,
     true
   )
 end
