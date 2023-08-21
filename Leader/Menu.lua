@@ -1,4 +1,5 @@
 local BindingHelper = require('Leader.BindingHelper')
+local Binding = require('Leader.Binding')
 
 local Menu = {
   items = {},
@@ -8,7 +9,6 @@ local Menu = {
   defaultTitle = "🞆",
   __mt = {},
   __noop = function() print("WARNING: invoked menu item without action") end,
-  __bh = BindingHelper
 }
 
 Menu.__index = Menu
@@ -17,18 +17,18 @@ Menu.__index = Menu
 -- which in turn allows us to treat actions in a menu simply as 'callables',
 -- where we don't care if the action is simply a callback function or a
 -- sub-menu.
-function Menu.__call(this)
-  return this:__activate()
+function Menu.__call(this, breadcrumbs)
+  return this:__activate(breadcrumbs)
 end
 
 -- Constructor for new menu instances
-function Menu.__mt.__call(this, items, hsGlobal)
+function Menu.__mt.__call(this, items, hsGlobal, title)
   local menu = setmetatable(
     {
-      title = nil,
+      title = title,
       items = items,
       modal = hsGlobal.hotkey.modal.new(),
-      helper = BindingHelper(items, hsGlobal)
+      helper = BindingHelper(hsGlobal)
     },
     this
   )
@@ -36,6 +36,32 @@ function Menu.__mt.__call(this, items, hsGlobal)
   menu:__bind()
 
   return menu
+end
+
+function Menu.named(title, hsGlobal)
+  return Menu({}, hsGlobal, title)
+end
+
+function Menu:withAction(modifiers, key, description, action)
+  local binding = Binding(modifiers, key, description)
+
+  binding:bindTo(self.modal, self:__activationFor(binding, action))
+
+  self.items[binding] = action
+  return self
+end
+
+function Menu:withRepeatingAction(modifiers, key, description, action)
+  local binding = Binding(modifiers, key, description, false, true)
+
+  binding:bindTo(self.modal, self:__activationFor(binding, action))
+
+  self.items[binding] = action
+  return self
+end
+
+function Menu:__helper()
+  return BindingHelper()
 end
 
 function Menu.isMenu(object)
@@ -54,7 +80,7 @@ function Menu:__activate(breadcrumbs)
   breadcrumbs = breadcrumbs or {}
   breadcrumbs[#breadcrumbs+1] = self.title or self.defaultTitle
   self.modal:enter()
-  self.helper:show()
+  self.helper:show(breadcrumbs, self.items)
 end
 
 function Menu:activate()
@@ -80,9 +106,15 @@ function Menu:__activationFor(binding, action)
   --      the 'current level' of menu we're at now.  This probably means passing
   --      some sort of callback function or reference, but I need to think about
   --      how I want that to work (also: a coroutine, maybe?)
-  return function ()
+  return function (breadcrumbs)
     self:__deactivate()
-    action()
+
+    action(breadcrumbs)
+    -- if Menu.isMenu(action) then
+    --   action(breadcrumbs)
+    -- else
+    --   action()
+    -- end
 
     if binding.repeating then
       self:__activate()
