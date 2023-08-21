@@ -6,7 +6,7 @@ local function deepCopy(orig)
         for orig_key, orig_value in next, orig, nil do
             copy[deepCopy(orig_key)] = deepCopy(orig_value)
         end
-        -- setmetatable(copy, deepCopy(getmetatable(orig)))
+        setmetatable(copy, deepCopy(getmetatable(orig)))
     else -- number, string, boolean, etc
         copy = orig
     end
@@ -64,21 +64,12 @@ local MenuSymbols = {
     },
 
     header = {
-      breadcrumb = " ",
+      breadcrumb =  " ❱ ",
       fill = "—"
     },
 
     repeating = '⥁',
 }
-
--- MenuSymbols.__index = MenuSymbols
-
--- function MenuSymbols.__mt.__call(class, overrides)
---   return setmetatable(
---     withOverrides(class, overrides or {}),
---     class
---   )
--- end
 
 setmetatable(MenuSymbols, ConfigMetaclass)
 
@@ -113,16 +104,6 @@ MenuStyles = {
     radius = 7,
   },
 }
-
--- MenuStyles.__index = MenuStyles
-
--- function MenuStyles.__mt.__call(class, overrides)
---   return setmetatable(
---     withOverrides(class, overrides or {}),
---     class
---   )
--- end
-
 
 function MenuStyles:base()
   return deepCopy(self.default.base)
