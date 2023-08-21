@@ -8,7 +8,6 @@ local Menu = {
   quitKey = { modifiers = nil, key = 'escape' },
   defaultTitle = "🞆",
   __mt = {},
-  __noop = function() print("WARNING: invoked menu item without action") end,
 }
 
 Menu.__index = Menu
@@ -101,20 +100,10 @@ function Menu:deactivate()
 end
 
 function Menu:__activationFor(binding, action)
-  -- TODO Figure out repeating for menus - this is trickier than plain actions,
-  --      since we may want to traverse multiple sub-menus before returning to
-  --      the 'current level' of menu we're at now.  This probably means passing
-  --      some sort of callback function or reference, but I need to think about
-  --      how I want that to work (also: a coroutine, maybe?)
   return function (breadcrumbs)
     self:__deactivate()
 
     action(breadcrumbs)
-    -- if Menu.isMenu(action) then
-    --   action(breadcrumbs)
-    -- else
-    --   action()
-    -- end
 
     if binding.repeating then
       self:__activate()
