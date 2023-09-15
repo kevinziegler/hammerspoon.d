@@ -7,7 +7,7 @@ local spoonInstall = spoonDir .. "SpoonInstall.spoon"
 return function()
   local exists, _ = hs.fs.touch(spoonInstall)
   if exists then
-    print("Spoon installer exits.  No bootstrap required.")
+    -- print("Spoon installer exits.  No bootstrap required.")
     return
   end
 
