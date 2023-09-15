@@ -24,6 +24,22 @@ function BindingHelper.__mt.__call(class, hsGlobal, config)
   )
 end
 
+function BindingHelper:show(breadcrumbs, items)
+  self:hide()
+  self.__displayId = self.hs.alert.show(
+    self:__helperText(breadcrumbs, items),
+    self.config.styles.alert,
+    true
+  )
+end
+
+function BindingHelper:hide()
+  if self.__displayId then
+    self.hs.alert.closeSpecific(self.__displayId)
+    self.__displayId = nil
+  end
+end
+
 function BindingHelper:__format(string, component, mode)
   return self.hs.styledtext.new(
     string,
@@ -76,19 +92,12 @@ function BindingHelper:__itemHint(binding, descriptionWidth)
     .. self:__descriptionHint(binding, descriptionWidth)
 end
 
-function BindingHelper:__header(title, width)
-  local fill = string.rep(
-    self.config.symbols.header.fill,
-    width - utf8.len(title) - 1
-  )
+function BindingHelper:__header(breadcrumbs, width)
+  local header = table.concat(
+    breadcrumbs,
+    self.config.symbols.header.breadcrumb
+  ) .. " "
 
-
-  return self:__format(title .. " ", "header", "title")
-    .. self:__format(fill, "header", "fill")
-end
-
-function BindingHelper:__breadcrumbHeader(breadcrumbs, width)
-  local header = table.concat(breadcrumbs, " ❱ ") .. " "
   local fillWidth = width - utf8.len(header)
   header = header .. string.rep(self.config.symbols.header.fill, fillWidth)
 
@@ -107,11 +116,11 @@ end
 
 
 function BindingHelper:__helperText(breadcrumbs, items)
-  local descriptionWidth = self.config.styles:styleFor("item.description").minWidth
   local lineWidth = 0
   local body = self:__format("", nil, "active")
-
-  breadcrumbs = breadcrumbs or {}
+  local descriptionWidth = self
+    .config
+    .styles:styleFor("item.description").minWidth
 
   for binding, _ in pairs(items) do
     descriptionWidth = math.max(descriptionWidth, utf8.len(binding.description))
@@ -123,23 +132,9 @@ function BindingHelper:__helperText(breadcrumbs, items)
     body = body .. self:__format("\n", nil, "active") .. line
   end
 
-  return self:__header("Actions", lineWidth) .. body .. self:__footer(lineWidth)
-end
-
-function BindingHelper:show(items)
-  self:hide()
-  self.__displayId = self.hs.alert.show(
-    self:__helperText(nil, items),
-    self.config.styles.alert,
-    true
-  )
-end
-
-function BindingHelper:hide()
-  if self.__displayId then
-    self.hs.alert.closeSpecific(self.__displayId)
-    self.__displayId = nil
-  end
+  return self:__header(breadcrumbs or {}, lineWidth)
+    .. body
+    .. self:__footer(lineWidth)
 end
 
 return setmetatable(BindingHelper, BindingHelper.__mt)
