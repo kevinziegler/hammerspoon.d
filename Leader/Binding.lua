@@ -1,12 +1,5 @@
 -- Describe a modal binding in the Leader menu
 
-local modifierKeys = {
-    COMMAND = "COMMAND",
-    OPTION  = "OPTION",
-    SHIFT   = "SHIFT",
-    CONTROL = "CONTROL"
-}
-
 --- A Leader key binding
 -- @type Binding
 -- @field modifiers table Modifier keys for the binding
@@ -20,11 +13,6 @@ local Binding = {
   description = nil,
   repeating = false,
   asMenu = false,
-
-  MODIFIER = {
-    KEYS = modifierKeys,
-  },
-
   __mt = {}
 }
 
