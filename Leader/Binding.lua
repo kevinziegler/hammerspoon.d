@@ -85,6 +85,29 @@ function Binding.repeats(modifiers, key, description, asMenu)
   return Binding(modifiers, key, description, true, asMenu)
 end
 
+--- Configure this binding as a repeating binding
+---
+--- Repeated bindings will return to the menu where they were invoked from after
+--- completing their associated action.
+---
+--- @return Binding This binding instance
+function Binding:repeating()
+  self.repeating = true
+  return self
+end
+
+--- Configure this binding as a menu binding
+---
+--- This overrides any detection based on the type of the action associated to
+--- the binding, allowing (for example) supplying a function that generates a
+--- menu as an action.
+---
+--- @return Binding This binding instance
+function Binding:asMenu()
+  self.asMenu = true
+  return self
+end
+
 --- Bind this modifier to a modal with the supplied action
 ---
 --- @param modal hs.modal The modal instance to bind to
