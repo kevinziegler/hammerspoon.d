@@ -53,6 +53,12 @@ local function normalizeKeys(modifiers, key)
   return modifiers, keyNormalized
 end
 
+--- Create a new binding instance
+---
+--- @param modifiers table Binding modifiers as a list of strings
+--- @param key string The key used for this binding
+--- @param description string A description to show in the menu helper
+--- @param repeating A boolean flag to indicate this menu item
 function Binding.__mt.__call(
     class,
     modifiers,
@@ -79,10 +85,21 @@ function Binding.repeats(modifiers, key, description, asMenu)
   return Binding(modifiers, key, description, true, asMenu)
 end
 
+--- Bind this modifier to a modal with the supplied action
+---
+--- @param modal hs.modal The modal instance to bind to
+--- @param action function The callback to invoke for this binding
 function Binding:bindTo(modal, action)
   modal:bind(self.modifiers, self.key, action)
 end
 
+--- Return the set of active modifiers for this binding
+---
+--- The modifier strings themselves are keys in the set, so checking if a
+--- modifier would be required can be performed by indexing that modifier in
+--- the set.
+---
+--- @return table A set of modifiers
 function Binding:enabledModifiers()
   local enabled = {}
   for _, modifier in pairs(self.modifiers) do
