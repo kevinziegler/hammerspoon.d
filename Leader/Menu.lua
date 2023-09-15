@@ -43,18 +43,21 @@ end
 
 function Menu:withAction(modifiers, key, description, action)
   local binding = Binding(modifiers, key, description)
-
-  binding:bindTo(self.modal, self:__activationFor(binding, action))
-
-  self.items[binding] = action
-  return self
+  return self:withBinding(binding, action)
 end
 
 function Menu:withRepeatingAction(modifiers, key, description, action)
   local binding = Binding(modifiers, key, description, false, true)
 
-  binding:bindTo(self.modal, self:__activationFor(binding, action))
+  return self:withBinding(binding, action)
+end
 
+function Menu:withSubmenu(modifiers, key, description, submenu)
+  local binding = Binding(modifiers, key, description):asMenu()
+  return self:withBinding(binding, menu)
+end
+
+function Menu:withBinding(binding, action)
   self.items[binding] = action
   return self
 end
